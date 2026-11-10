@@ -1,4 +1,4 @@
-// 聖經書卷（恢復本名稱、簡稱、章數）＋ 恢復本網上聖經連結
+// 聖經書卷（恢復本名稱、簡稱、章數）＋ 恢復本經文
 (() => {
   'use strict';
   // [全名, 簡稱, 章數]；陣列索引 + 1 = 恢復本網站的書卷編號 (f_BookNo)
@@ -21,7 +21,17 @@
     ['雅各書', '雅', 5], ['彼得前書', '彼前', 5], ['彼得後書', '彼後', 3], ['約翰一書', '約壹', 5],
     ['約翰二書', '約貳', 1], ['約翰三書', '約參', 1], ['猶大書', '猶', 1], ['啟示錄', '啟', 22],
   ];
-  const RV_BASE = 'https://www.recoveryversion.com.tw/Style0A/026/read_List.php';
+  // 書卷 OSIS 代號（經文資料檔的資料夾名稱），順序同上
+  const OSIS = ['Gen', 'Exod', 'Lev', 'Num', 'Deut', 'Josh', 'Judg', 'Ruth', '1Sam', '2Sam', '1Kgs', '2Kgs',
+    '1Chr', '2Chr', 'Ezra', 'Neh', 'Esth', 'Job', 'Ps', 'Prov', 'Eccl', 'Song', 'Isa', 'Jer', 'Lam', 'Ezek',
+    'Dan', 'Hos', 'Joel', 'Amos', 'Obad', 'Jonah', 'Mic', 'Nah', 'Hab', 'Zeph', 'Hag', 'Zech', 'Mal',
+    'Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', '1Cor', '2Cor', 'Gal', 'Eph', 'Phil', 'Col', '1Thess',
+    '2Thess', '1Tim', '2Tim', 'Titus', 'Phlm', 'Heb', 'Jas', '1Pet', '2Pet', '1John', '2John', '3John', 'Jude', 'Rev'];
+
+  // 恢復本經文資料：取自「原文對照聖經」（isaiahovercomer/interlinear-bible）公開的每章 JSON
+  const SOURCE_SITE = 'https://isaiahovercomer.github.io/interlinear-bible/';
+  const TEXT_BASE = SOURCE_SITE + 'data/rcv-zh/';
+  const ATTRIBUTION = '聖經恢復本經文 © Living Stream Ministry，台灣福音書房出版。';
 
   const book = (no) => {
     const b = BOOKS[no - 1];
@@ -46,7 +56,25 @@
     return s.c1 === s.c2 ? `${s.book.name} 第 ${s.c1} ${unit}` : `${s.book.name} ${s.c1}～${s.c2} ${unit}`;
   };
 
-  const chapterUrl = (b, c) => `${RV_BASE}?f_BookNo=${b}&f_ChapterNo=${c}`;
+  // 一章的經文 JSON；在原網站打開同一章的連結
+  const textUrl = (b, c) => `${TEXT_BASE}${OSIS[b - 1]}/${c}.json`;
+  const sourceUrl = (b, c) => `${SOURCE_SITE}#${OSIS[b - 1]}.${c}`;
 
-  window.GM_BIBLE = { BOOKS, book, normalize, label, chapterUrl, count: BOOKS.length };
+  const cache = new Map();
+  // 回傳 [{n, text}]；n = 0 是詩篇的標題
+  function loadChapter(b, c) {
+    const key = `${b}:${c}`;
+    if (!cache.has(key)) {
+      cache.set(key, fetch(textUrl(b, c))
+        .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+        .then((d) => (d.verses || []).map((v) => ({ n: v.n, text: v.text })))
+        .catch((e) => { cache.delete(key); throw e; }));
+    }
+    return cache.get(key);
+  }
+
+  window.GM_BIBLE = {
+    BOOKS, book, normalize, label, textUrl, sourceUrl, loadChapter,
+    SOURCE_SITE, ATTRIBUTION, count: BOOKS.length,
+  };
 })();

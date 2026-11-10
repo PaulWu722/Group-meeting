@@ -63,8 +63,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .empty-note { color: var(--muted); text-align: center; padding: 2rem 1rem; list-style: none; }
 
 /* Current */
-.current { padding: 0; overflow: hidden; }
-.cur-head { padding: 1.4rem 1.4rem 1rem; background: linear-gradient(135deg, #fbf8f1 0%, #eef4ef 100%); border-bottom: 1px solid var(--line); }
+.current { padding: 0; }
+.cur-head { border-radius: var(--radius) var(--radius) 0 0; padding: 1.4rem 1.4rem 1rem; background: linear-gradient(135deg, #fbf8f1 0%, #eef4ef 100%); border-bottom: 1px solid var(--line); }
 .cur-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 0.6rem; }
 .badge { background: var(--brand); color: #fff; font-size: 0.78rem; font-weight: 700; border-radius: 99px; padding: 0.1rem 0.7rem; }
 .badge.past { background: var(--gold); }
@@ -110,19 +110,33 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .seg-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.7rem; }
 .seg-head h3 { font-family: var(--serif); font-size: 1.15rem; }
 .testament { font-size: 0.72rem; background: var(--gold-soft); color: var(--gold); border-radius: 6px; padding: 0 0.4rem; font-weight: 700; }
-.chaps { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 0.5rem; }
-.chap {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  text-decoration: none; color: var(--brand); background: var(--brand-soft);
-  border: 1px solid transparent; border-radius: 12px; padding: 0.5rem 0.25rem; line-height: 1.2; position: relative;
-  transition: transform 0.1s, background 0.15s;
+.bible-bar { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; }
+.bible-bar .progress-row { flex: 1; margin-bottom: 0; }
+.size-switch { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+.size-btn { border: 0; background: #fff; padding: 0.15rem 0.6rem; cursor: pointer; font-size: 0.85rem; color: var(--muted); }
+.size-btn + .size-btn { border-left: 1px solid var(--line); }
+.size-btn.active { background: var(--brand); color: #fff; }
+.chap-nav {
+  display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.5rem 0; margin-bottom: 0.4rem;
+  position: sticky; top: 127px; z-index: 5; background: #fff;
 }
-.chap:hover { background: #d7e6dc; transform: translateY(-1px); }
-.chap-no { font-size: 1.25rem; font-weight: 700; }
-.chap-unit { font-size: 0.72rem; opacity: 0.75; }
-.chap.read { background: #fff; border-color: var(--line); color: var(--muted); }
-.chap.read::after { content: "✓"; position: absolute; top: 3px; right: 7px; font-size: 0.75rem; color: var(--brand-2); }
-.bible-hint { margin-top: 0.6rem; }
+.chap-jump { flex-shrink: 0; border: 1px solid var(--line); background: var(--brand-soft); color: var(--brand); border-radius: 99px; padding: 0.15rem 0.8rem; cursor: pointer; font-size: 0.88rem; }
+.chap-jump.read { background: #fff; color: var(--muted); }
+.chap-jump.read::after { content: " ✓"; color: var(--brand-2); }
+.chapter { padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--line); }
+.chapter:last-of-type { border-bottom: 0; }
+.chapter h3 { font-family: var(--serif); font-size: 1.25rem; color: var(--brand); margin: 0.4rem 0 0.6rem; }
+.verses { font-family: var(--serif); font-size: 1.08rem; line-height: 1.95; }
+#tab-bible[data-size="s"] .verses { font-size: 0.95rem; }
+#tab-bible[data-size="l"] .verses { font-size: 1.32rem; }
+.v { margin: 0 0 0.35rem; display: grid; grid-template-columns: 2em 1fr; }
+.vn { font-family: "Noto Sans TC", sans-serif; font-size: 0.72em; font-weight: 700; color: var(--gold); padding-top: 0.35em; line-height: 1.4; }
+.v-title { display: block; color: var(--muted); font-size: 0.92em; }
+.chapter-foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 0.6rem; }
+.chapter-foot a { text-decoration: none; font-size: 0.82rem; }
+.read-btn { border: 1px solid var(--brand-2); background: #fff; color: var(--brand); border-radius: 99px; padding: 0.3rem 1rem; cursor: pointer; font-weight: 500; }
+.read-btn.on { background: var(--brand-2); color: #fff; }
+.attribution { margin-top: 1rem; font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
 
 /* Archive */
 .archive { margin-top: 0.5rem; }

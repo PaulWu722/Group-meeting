@@ -66,62 +66,127 @@
     if (t === 'pdf') relayout();
   }
 
-  // ---------- 聖經進度 ----------
+  // ---------- 聖經進度（列出恢復本經文） ----------
   const READ_KEY = 'groupmeet-read-v1';
+  const SIZE_KEY = 'groupmeet-text-size';
   const readSet = () => { try { return new Set(JSON.parse(localStorage.getItem(READ_KEY)) || []); } catch { return new Set(); } };
   const saveRead = (s) => localStorage.setItem(READ_KEY, JSON.stringify([...s].slice(-3000)));
   const readKey = (b, c) => `${current.id}:${b}:${c}`;
+  const unitOf = (b) => (b === 19 ? '篇' : '章');
+  const chapterTitle = (bk, c) => (bk.chapters === 1 ? bk.name : `${bk.name} 第 ${c} ${unitOf(bk.no)}`);
+
+  const chaptersOf = (item) => {
+    const list = [];
+    (item.bible || []).map(B.normalize).filter(Boolean).forEach((s) => {
+      for (let c = s.c1; c <= s.c2; c++) list.push({ b: s.b, c, book: s.book });
+    });
+    return list;
+  };
+
+  function applyTextSize() {
+    const size = localStorage.getItem(SIZE_KEY) || 'm';
+    $('#tab-bible').dataset.size = size;
+    $$('#bible-body .size-btn').forEach((x) => x.classList.toggle('active', x.dataset.size === size));
+  }
 
   function renderBible() {
     const box = $('#bible-body');
-    const segs = (current.bible || []).map(B.normalize).filter(Boolean);
-    if (!segs.length) {
+    const chs = chaptersOf(current);
+    if (!chs.length) {
       box.innerHTML = '<p class="empty-note">這次聚會沒有設定讀經進度。</p>';
       return;
     }
-    const read = readSet();
-    let total = 0, done = 0;
-    const html = segs.map((s) => {
-      const unit = s.book.no === 19 ? '篇' : '章';
-      const chips = [];
-      for (let c = s.c1; c <= s.c2; c++) {
-        total++;
-        const on = read.has(readKey(s.b, c));
-        if (on) done++;
-        chips.push(`<a class="chap${on ? ' read' : ''}" href="${B.chapterUrl(s.b, c)}" target="_blank" rel="noopener"
-          data-b="${s.b}" data-c="${c}" title="在恢復本網站閱讀 ${esc(s.book.name)} 第 ${c} ${unit}">
-          <span class="chap-no">${c}</span><span class="chap-unit">${unit}</span></a>`);
-      }
-      return `<div class="seg">
-        <div class="seg-head"><span class="testament">${s.book.testament}</span><h3>${esc(B.label(s))}</h3></div>
-        <div class="chaps">${chips.join('')}</div>
-      </div>`;
-    }).join('');
-    const pct = total ? Math.round((done / total) * 100) : 0;
     box.innerHTML = `
-      <div class="progress-row">
-        <div class="progress"><div class="progress-bar" style="width:${pct}%"></div></div>
-        <span class="progress-text">已讀 ${done} / ${total} ${segs.length === 1 && segs[0].book.no === 19 ? '篇' : '章'}</span>
+      <div class="bible-bar">
+        <div class="progress-row">
+          <div class="progress"><div class="progress-bar" id="read-bar"></div></div>
+          <span class="progress-text" id="read-text"></span>
+        </div>
+        <div class="size-switch" aria-label="經文字級">
+          <button type="button" class="size-btn" data-size="s">小</button>
+          <button type="button" class="size-btn" data-size="m">中</button>
+          <button type="button" class="size-btn" data-size="l">大</button>
+        </div>
       </div>
-      ${html}
-      <p class="muted bible-hint">點章數會在新分頁開啟<a href="https://www.recoveryversion.com.tw/" target="_blank" rel="noopener">聖經恢復本</a>（含註解）並標記為已讀。
-        ${done ? '<button type="button" class="link-btn" id="reset-read">清除已讀記號</button>' : ''}</p>`;
+      ${chs.length > 1 ? `<nav class="chap-nav">${chs.map((x) =>
+        `<button type="button" class="chap-jump" data-b="${x.b}" data-c="${x.c}">${esc(x.book.short)} ${x.c}</button>`).join('')}</nav>` : ''}
+      ${chs.map((x) => `
+        <article class="chapter" id="ch-${x.b}-${x.c}">
+          <h3>${esc(chapterTitle(x.book, x.c))}</h3>
+          <div class="verses" data-b="${x.b}" data-c="${x.c}"><p class="muted">經文載入中…</p></div>
+          <div class="chapter-foot">
+            <button type="button" class="read-btn" data-b="${x.b}" data-c="${x.c}"></button>
+            <a class="muted" href="${B.sourceUrl(x.b, x.c)}" target="_blank" rel="noopener">原文對照 ↗</a>
+          </div>
+        </article>`).join('')}
+      <p class="attribution">${esc(B.ATTRIBUTION)}經文資料取自
+        <a href="${B.SOURCE_SITE}" target="_blank" rel="noopener">原文對照聖經</a>。</p>`;
+    applyTextSize();
+    updateRead();
+    const my = current.id;
+    chs.forEach((x) => loadVerses(x, my));
+  }
+
+  // 資料用 [ ] 標示譯者補上的字；印刷版不顯示括號
+  const verseHtml = (t) => esc(t).replace(/\[([^\]]*)\]/g, '$1');
+
+  async function loadVerses(x, itemId) {
+    const el = $(`#bible-body .verses[data-b="${x.b}"][data-c="${x.c}"]`);
+    try {
+      const verses = await B.loadChapter(x.b, x.c);
+      if (!current || current.id !== itemId || !el.isConnected) return;
+      el.innerHTML = verses.map((v) => (v.n === 0
+        ? `<p class="v v-title">${verseHtml(v.text)}</p>`
+        : `<p class="v"><span class="vn">${v.n}</span><span>${verseHtml(v.text)}</span></p>`)).join('');
+    } catch (e) {
+      console.warn('load chapter failed', e);
+      if (!el.isConnected) return;
+      el.innerHTML = '<p class="empty-note">經文載入失敗。<button type="button" class="link-btn retry">再試一次</button></p>';
+      el.querySelector('.retry').addEventListener('click', () => {
+        el.innerHTML = '<p class="muted">經文載入中…</p>';
+        loadVerses(x, itemId);
+      });
+    }
+  }
+
+  function updateRead() {
+    const chs = chaptersOf(current);
+    const read = readSet();
+    const done = chs.filter((x) => read.has(readKey(x.b, x.c))).length;
+    const bar = $('#read-bar');
+    if (!bar) return;
+    bar.style.width = (chs.length ? Math.round((done / chs.length) * 100) : 0) + '%';
+    $('#read-text').textContent = `已讀 ${done} / ${chs.length} ${chs.every((x) => x.b === 19) ? '篇' : '章'}`;
+    $$('#bible-body .read-btn').forEach((btn) => {
+      const on = read.has(readKey(btn.dataset.b, btn.dataset.c));
+      btn.classList.toggle('on', on);
+      btn.textContent = on ? '✓ 已讀' : '讀完了，打勾';
+    });
+    $$('#bible-body .chap-jump').forEach((btn) =>
+      btn.classList.toggle('read', read.has(readKey(btn.dataset.b, btn.dataset.c))));
   }
 
   $('#bible-body').addEventListener('click', (e) => {
-    const a = e.target.closest('.chap');
-    if (a) {
+    const rb = e.target.closest('.read-btn');
+    if (rb) {
       const s = readSet();
-      s.add(readKey(a.dataset.b, a.dataset.c));
+      const k = readKey(rb.dataset.b, rb.dataset.c);
+      if (s.has(k)) s.delete(k); else s.add(k);
       saveRead(s);
-      setTimeout(renderBible, 50);
+      updateRead();
       return;
     }
-    if (e.target.id === 'reset-read') {
-      const s = readSet();
-      [...s].filter((k) => k.startsWith(current.id + ':')).forEach((k) => s.delete(k));
-      saveRead(s);
-      renderBible();
+    const jump = e.target.closest('.chap-jump');
+    if (jump) {
+      const el = $(`#ch-${jump.dataset.b}-${jump.dataset.c}`);
+      const y = el.getBoundingClientRect().top + window.scrollY - 185;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+      return;
+    }
+    const sz = e.target.closest('.size-btn');
+    if (sz) {
+      localStorage.setItem(SIZE_KEY, sz.dataset.size);
+      applyTextSize();
     }
   });
 
