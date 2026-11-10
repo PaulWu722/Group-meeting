@@ -19,7 +19,9 @@
 ## 經文來源與版權
 
 聖經恢復本經文 © Living Stream Ministry，台灣福音書房出版。
-經文是網頁打開時，從[原文對照聖經](https://isaiahovercomer.github.io/interlinear-bible/)公開的每章資料檔（`data/rcv-zh/書卷/章.json`）讀取，本 repo 不存放經文。
+經文存在本 repo 的 `data/rcv-zh/書卷/章.json`（每章一個檔，共 1189 個，例如 `data/rcv-zh/Mark/6.json`），
+複製自[原文對照聖經](https://isaiahovercomer.github.io/interlinear-bible/)的資料，只保留節數與經文。
+經文裡的 `[ ]` 是譯者補上的字，網頁顯示時不印括號。
 網站首頁底部與「聖經進度」分頁都有標示版權與來源。
 
 ## 資料存放
@@ -55,7 +57,8 @@ update public.gm_settings
 | `index.html` / `app.js` | 首頁（PDF 閱讀器使用 pdf.js） |
 | `admin.html` / `admin.js` | 管理頁 |
 | `api.js` | 資料存取（Supabase／示範模式） |
-| `bible.js` | 66 卷書名、章數與恢復本網址 |
+| `bible.js` | 66 卷書名、章數，讀取經文 |
+| `data/rcv-zh/` | 恢復本經文（每章一個 JSON） |
 | `common.js` / `style.css` | 共用工具與樣式 |
 | `config.js` | 設定 |
 | `supabase/schema.sql` | 資料庫 |

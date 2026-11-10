@@ -28,9 +28,9 @@
     'Matt', 'Mark', 'Luke', 'John', 'Acts', 'Rom', '1Cor', '2Cor', 'Gal', 'Eph', 'Phil', 'Col', '1Thess',
     '2Thess', '1Tim', '2Tim', 'Titus', 'Phlm', 'Heb', 'Jas', '1Pet', '2Pet', '1John', '2John', '3John', 'Jude', 'Rev'];
 
-  // 恢復本經文資料：取自「原文對照聖經」（isaiahovercomer/interlinear-bible）公開的每章 JSON
+  // 恢復本經文資料：存在本站 data/rcv-zh/{書卷}/{章}.json（複製自「原文對照聖經」的資料，只留經文）
   const SOURCE_SITE = 'https://isaiahovercomer.github.io/interlinear-bible/';
-  const TEXT_BASE = SOURCE_SITE + 'data/rcv-zh/';
+  const TEXT_BASE = 'data/rcv-zh/';
   const ATTRIBUTION = '聖經恢復本經文 © Living Stream Ministry，台灣福音書房出版。';
 
   const book = (no) => {
