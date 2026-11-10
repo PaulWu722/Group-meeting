@@ -49,14 +49,14 @@
     async add(pass, d) {
       const path = await uploadLive(pass, d.file);
       return rpc('gm_admin_add', {
-        p_pass: pass, p_date: d.date, p_title: d.title, p_note: d.note || '', p_bible: d.bible || [],
+        p_pass: pass, p_date: d.date, p_title: d.title, p_note: d.note || '', p_bible: d.bible || [], p_content: d.content || {},
         p_path: path, p_file_name: d.file ? d.file.name : null, p_file_size: d.file ? d.file.size : null,
       });
     },
     async update(pass, d) {
       const path = await uploadLive(pass, d.file);
       const r = await rpc('gm_admin_update', {
-        p_pass: pass, p_id: d.id, p_date: d.date, p_title: d.title, p_note: d.note || '', p_bible: d.bible || [],
+        p_pass: pass, p_id: d.id, p_date: d.date, p_title: d.title, p_note: d.note || '', p_bible: d.bible || [], p_content: d.content || {},
         p_path: path, p_file_name: d.file ? d.file.name : null, p_file_size: d.file ? d.file.size : null,
       });
       await removeFileLive(r.old_path);
@@ -129,7 +129,7 @@
       const db = loadDb();
       db.items.push({
         id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
-        meet_date: d.date, title: d.title.trim(), note: d.note || '', bible: d.bible || [],
+        meet_date: d.date, title: d.title.trim(), note: d.note || '', bible: d.bible || [], content: d.content || {},
         file_path: path, file_name: d.file ? d.file.name : '', file_size: d.file ? d.file.size : 0,
         created_at: new Date().toISOString(),
       });
@@ -141,7 +141,7 @@
       const db = loadDb();
       const it = db.items.find((x) => x.id === d.id);
       if (!it) throw new Error('找不到這筆信息，請重新整理');
-      Object.assign(it, { meet_date: d.date, title: d.title.trim(), note: d.note || '', bible: d.bible || [] });
+      Object.assign(it, { meet_date: d.date, title: d.title.trim(), note: d.note || '', bible: d.bible || [], content: d.content || {} });
       if (d.file) {
         const old = it.file_path;
         Object.assign(it, { file_path: await putFile(d.file), file_name: d.file.name, file_size: d.file.size });

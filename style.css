@@ -232,3 +232,58 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .admin-item { flex-direction: column; align-items: stretch; }
   .ai-actions { justify-content: flex-end; }
 }
+
+/* ===== 信息內容（仿每週信息 PDF 的版面） ===== */
+:root { --navy: #1d3557; --navy-2: #24426b; --teal: #3c7a7e; --paper: #fbf8f2; }
+.cur-series { color: var(--gold); font-size: 0.82rem; letter-spacing: 0.3em; margin-top: 0.5rem; }
+.cur-sub { font-family: var(--serif); color: #46524c; font-size: clamp(1rem, 3.6vw, 1.15rem); margin-top: 0.15rem; letter-spacing: 0.05em; }
+.msg { font-size: 1.02rem; }
+.msg-sec { margin: 0.4rem 0 1.6rem; }
+.msg-sec-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.8rem; }
+.msg-num {
+  flex-shrink: 0; width: 2.3rem; height: 2.3rem; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--navy); color: #fff; font-family: var(--serif); font-size: 0.95rem;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--gold);
+}
+.msg-sec-head h3 { font-family: var(--serif); font-size: 1.25rem; color: var(--navy); white-space: nowrap; margin-left: 0.2rem; }
+.msg-sec-sub { font-size: 0.95rem; color: var(--teal); letter-spacing: 0.02em; white-space: normal; }
+.msg-sec-head h3:has(.msg-sec-sub) { white-space: normal; }
+.msg-line { flex: 1; height: 2px; min-width: 1rem; background: linear-gradient(90deg, var(--gold), transparent); }
+.msg-pray {
+  background: #eef2f3; border-left: 4px solid var(--teal); border-radius: 10px;
+  padding: 0.8rem 1rem; font-family: var(--serif); font-size: 1.05rem; line-height: 1.9;
+}
+.msg-pray-label { color: var(--teal); font-weight: 700; }
+.msg-pray-ref { color: var(--gold); margin-right: 0.5rem; }
+.msg-hymn { border: 1px solid var(--line); border-radius: 14px; padding: 0.9rem 1rem; font-family: var(--serif); line-height: 1.95; background: #fff; }
+.msg-hymn p { margin: 0; }
+.hymn-stanza { display: grid; grid-template-columns: 1.6rem 1fr; margin: 0.2rem 0 0.6rem; }
+.hymn-stanza:not(:has(.hymn-no)) { grid-template-columns: 1fr; padding-left: 1.6rem; }
+.hymn-no { color: var(--gold); font-size: 0.9rem; padding-top: 0.15rem; }
+.hymn-chorus { background: #f4ede1; border-left: 4px solid var(--gold); border-radius: 10px; padding: 0.6rem 0.9rem; margin: 0.4rem 0 0.7rem; font-weight: 700; }
+.hymn-label { display: block; color: var(--gold); font-weight: 400; font-size: 0.9rem; }
+.msg-body { line-height: 2; }
+.msg-p { margin: 0 0 0.8rem; text-align: justify; }
+.msg-h { color: var(--teal); font-family: var(--serif); font-size: 1.08rem; margin: 1.1rem 0 0.4rem; }
+.msg-h::before { content: "◆"; color: var(--gold); margin-right: 0.4rem; font-size: 0.85em; }
+.msg-cite { text-align: right; color: var(--muted); font-size: 0.85rem; margin: -0.3rem 0 1rem; }
+.msg-q { list-style: none; }
+.msg-q li { display: flex; gap: 0.3rem; margin-bottom: 0.7rem; font-weight: 700; color: var(--navy); line-height: 1.7; }
+.msg-q-no { color: var(--gold); font-family: var(--serif); flex-shrink: 0; min-width: 2.4em; }
+.msg-pdf-link { text-align: center; margin-top: 0.5rem; }
+
+/* 管理頁：編寫信息 */
+.pray-row { display: flex; gap: 0.5rem; }
+.pray-row input { flex: 1; border: 1px solid var(--line); border-radius: 10px; padding: 0.55rem 0.75rem; }
+.field input[type="text"] + textarea { margin-top: 0.4rem; }
+.hint { font-size: 0.8rem; line-height: 1.5; }
+.draft-note { background: var(--gold-soft); border-radius: 10px; padding: 0.4rem 0.8rem; }
+.preview { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.preview .cur-head { border-radius: 0; }
+@media (min-width: 1100px) {
+  .admin .main.narrow { width: min(1280px, 96%); display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 1.25rem; align-items: start; }
+  .admin #login { grid-column: 1 / -1; }
+  .admin #list-card { grid-column: 1 / -1; }
+  .admin .preview-card { position: sticky; top: 70px; max-height: calc(100vh - 84px); overflow-y: auto; }
+}

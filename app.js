@@ -42,17 +42,23 @@
     $('#cur-badge').className = 'badge' + (isDefault ? '' : ' past');
     $('#cur-date').textContent = fmtDate(item.meet_date);
     $('#cur-title').textContent = item.title;
+    const ct = item.content || {};
+    $('#cur-series').textContent = ct.series || '';
+    $('#cur-series').hidden = !ct.series;
+    $('#cur-sub').textContent = ct.subtitle || '';
+    $('#cur-sub').hidden = !ct.subtitle;
     $('#cur-note').textContent = item.note || '';
     $('#cur-note').hidden = !item.note;
     $('#back-current').hidden = isDefault;
 
-    const hasPdf = !!item.file_path;
+    const hasMsg = window.GM_MSG.hasContent(item);
+    const hasPdf = hasMsg || !!item.file_path;
     const hasBible = Array.isArray(item.bible) && item.bible.length > 0;
     $('#tab-btn-bible').querySelector('small').textContent = hasBible ? bibleText(item.bible) : '';
     setTab(!hasPdf && hasBible ? 'bible' : tab === 'bible' && hasBible ? 'bible' : 'pdf');
 
     renderBible();
-    openPdf(item);
+    renderMessage(item, hasMsg);
     renderArchive();
     if (scroll) $('#current').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -190,6 +196,20 @@
     }
   });
 
+  // ---------- 信息：有填內容就顯示排版好的網頁，否則顯示 PDF ----------
+  function renderMessage(item, hasMsg) {
+    const view = $('#msg-view');
+    view.hidden = !hasMsg;
+    $('#pages').hidden = hasMsg;
+    if (!hasMsg) { view.innerHTML = ''; openPdf(item); return; }
+    ++token; // 停掉還在載入的 PDF
+    $('#pdf-tools').hidden = true;
+    view.innerHTML = window.GM_MSG.render(item) + (item.file_path
+      ? '<p class="msg-pdf-link"><button type="button" class="link-btn" id="show-pdf">看原始 PDF</button></p>' : '');
+    const btn = $('#show-pdf');
+    if (btn) btn.addEventListener('click', () => { view.hidden = true; $('#pages').hidden = false; openPdf(item); });
+  }
+
   // ---------- PDF 閱讀器（pdf.js，手機也能直接看） ----------
   let pdfjsP = null;
   const loadPdfjs = () => (pdfjsP ||= import(`${PDFJS}/build/pdf.min.mjs`).then((lib) => {
@@ -319,7 +339,7 @@
         <span class="arch-date">${esc(fmtDate(x.meet_date, false))}</span>
         <span class="arch-main"><span class="arch-title">${esc(x.title)}</span>
           ${bt ? `<span class="arch-bible">📖 ${esc(bt)}</span>` : ''}</span>
-        <span class="arch-icons">${x.file_path ? '📄' : ''}</span>
+        <span class="arch-icons">${x.file_path || window.GM_MSG.hasContent(x) ? '📄' : ''}</span>
       </button></li>`;
     }).join('') || '<li class="empty-note">找不到符合的信息</li>';
   }

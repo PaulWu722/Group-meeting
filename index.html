@@ -43,7 +43,9 @@
           <span class="cur-date" id="cur-date"></span>
           <button type="button" class="link-btn" id="back-current" hidden>← 回到本次聚會</button>
         </div>
+        <p class="cur-series" id="cur-series" hidden></p>
         <h1 id="cur-title"></h1>
+        <p class="cur-sub" id="cur-sub" hidden></p>
         <p class="cur-note" id="cur-note" hidden></p>
       </div>
 
@@ -57,6 +59,7 @@
       </div>
 
       <div class="tab-panel" id="tab-pdf" role="tabpanel">
+        <div id="msg-view" hidden></div>
         <div class="pdf-tools" id="pdf-tools">
           <div class="zoom">
             <button type="button" id="zoom-out" aria-label="縮小">−</button>
@@ -92,6 +95,7 @@
   <script src="bible.js"></script>
   <script src="api.js"></script>
   <script src="common.js"></script>
+  <script src="message.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

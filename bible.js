@@ -60,6 +60,9 @@
   const textUrl = (b, c) => `${TEXT_BASE}${OSIS[b - 1]}/${c}.json`;
   const sourceUrl = (b, c) => `${SOURCE_SITE}#${OSIS[b - 1]}.${c}`;
 
+  // 資料用 “ ” ‘ ’，恢復本印刷用 『 』 「 」
+  const zhQuotes = (t) => String(t).replace(/“/g, '『').replace(/”/g, '』').replace(/‘/g, '「').replace(/’/g, '」');
+
   const cache = new Map();
   // 回傳 [{n, text}]；n = 0 是詩篇的標題
   function loadChapter(b, c) {
@@ -67,7 +70,7 @@
     if (!cache.has(key)) {
       cache.set(key, fetch(textUrl(b, c))
         .then((r) => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then((d) => (d.verses || []).map((v) => ({ n: v.n, text: v.text })))
+        .then((d) => (d.verses || []).map((v) => ({ n: v.n, text: zhQuotes(v.text) })))
         .catch((e) => { cache.delete(key); throw e; }));
     }
     return cache.get(key);

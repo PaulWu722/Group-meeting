@@ -53,38 +53,71 @@
           </label>
           <label class="field">
             <span>標題 <em>*</em></span>
-            <input type="text" id="f-title" maxlength="200" placeholder="例：第十二週　生命的經歷" required>
+            <input type="text" id="f-title" maxlength="200" placeholder="例：馬可第六章" required>
+          </label>
+        </div>
+        <div class="row-2">
+          <label class="field">
+            <span>眉標 <small class="muted">（選填）</small></span>
+            <input type="text" id="f-series" maxlength="60" placeholder="例：第一次讀經就上手">
+          </label>
+          <label class="field">
+            <span>副標題</span>
+            <input type="text" id="f-subtitle" maxlength="200" placeholder="例：供應我們的需要，並帶我們渡過難關">
           </label>
         </div>
 
         <div class="field">
-          <span>信息 PDF</span>
-          <label class="drop" id="drop">
-            <input type="file" id="f-file" accept="application/pdf,.pdf">
-            <span class="drop-icon">📄</span>
-            <span class="drop-text" id="drop-text">點這裡選擇 PDF，或把檔案拖進來</span>
-            <span class="muted drop-sub" id="drop-sub">上限 50MB</span>
-          </label>
-          <button type="button" class="link-btn" id="clear-file" hidden>取消選擇的檔案</button>
-        </div>
-
-        <div class="field">
-          <span>讀經進度（聖經恢復本）</span>
+          <span>壹　讀經進度（聖經恢復本）</span>
           <div id="segs" class="segs"></div>
           <button type="button" class="btn ghost small" id="add-seg">＋ 新增一段經文</button>
         </div>
 
+        <div class="field">
+          <span>禱讀經節</span>
+          <div class="pray-row">
+            <input type="text" id="f-pray-ref" maxlength="40" placeholder="例：可 6:50~51">
+            <button type="button" class="btn ghost small" id="pray-fill">帶入經文</button>
+          </div>
+          <textarea id="f-pray-text" rows="2" maxlength="2000" placeholder="按「帶入經文」會自動填入恢復本經文，也可以自己打"></textarea>
+        </div>
+
+        <div class="field">
+          <span>貳　詩歌</span>
+          <input type="text" id="f-hymn-title" maxlength="100" placeholder="詩歌名稱，例：喫、喝、呼吸">
+          <textarea id="f-hymn" rows="7" maxlength="6000" placeholder="1 你經過程終極完成，成為那靈，來作生命、供應，同我面對環境。&#10;靈原文就是氣，既親切，又便利；接受就是呼吸，使我活，更活你！&#10;&#10;（副）&#10;聖氣給我呼吸，現在就吸入你；…"></textarea>
+          <small class="muted hint">每節開頭寫節數（1、2、3…）；副歌那一節第一行寫「（副）」；節與節之間空一行。</small>
+        </div>
+
+        <div class="field">
+          <span>參　信息選讀</span>
+          <textarea id="f-message" rows="12" maxlength="60000" placeholder="七節說，主叫了十二個門徒來，…&#10;&#10;◆ 藉著陳明真理趕鬼&#10;我們思考十二個門徒…&#10;&#10;（馬可福音生命讀經，191~196 頁。）"></textarea>
+          <small class="muted hint">「◆」開頭的一行是小標題；整段用（ ）括起來的是出處，會靠右；段落之間空一行。從 PDF 或網頁直接貼上也可以，斷行會自動接起來。</small>
+        </div>
+
+        <div class="field">
+          <span>肆　問題研討</span>
+          <textarea id="f-questions" rows="4" maxlength="6000" placeholder="一行一題，例：&#10;十二個門徒奉差遣出去作的三件事是什麼？"></textarea>
+        </div>
+
         <label class="field">
-          <span>說明／綱要 <small class="muted">（選填）</small></span>
-          <textarea id="f-note" rows="3" maxlength="2000" placeholder="例：本週重點、要背的經節、聚會地點…"></textarea>
+          <span>聚會說明 <small class="muted">（選填，顯示在標題下方）</small></span>
+          <textarea id="f-note" rows="2" maxlength="2000" placeholder="例：週四晚上 7:30，在某某家"></textarea>
         </label>
 
+        <p class="draft-note muted" id="draft-note" hidden>已還原上次沒發布的草稿。<button type="button" class="link-btn" id="draft-clear">清除草稿</button></p>
         <div class="form-actions">
           <button type="button" class="btn ghost" id="cancel-edit" hidden>取消</button>
           <button type="submit" class="btn primary" id="submit-btn">發布</button>
         </div>
         <p class="form-error" id="form-error" hidden></p>
       </form>
+    </section>
+
+    <!-- 預覽 -->
+    <section class="card preview-card" id="preview-card" hidden>
+      <h2>預覽 <small class="muted">（大家在首頁看到的樣子）</small></h2>
+      <div class="preview" id="preview"></div>
     </section>
 
     <!-- 列表 -->
@@ -99,6 +132,7 @@
   <script src="bible.js"></script>
   <script src="api.js"></script>
   <script src="common.js"></script>
+  <script src="message.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>

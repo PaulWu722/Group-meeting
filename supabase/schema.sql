@@ -15,12 +15,14 @@ create table if not exists public.gm_messages (
   title      text not null,
   note       text not null default '',
   bible      jsonb not null default '[]'::jsonb,   -- 讀經進度 [{"b":43,"c1":3,"c2":4}]
+  content    jsonb not null default '{}'::jsonb,   -- 信息內容（副標題、禱讀、詩歌、信息選讀、問題研討）
   file_path  text,                                -- PDF 可留空
   file_name  text not null default '',
   file_size  bigint not null default 0,
   created_at timestamptz not null default now()
 );
 alter table public.gm_messages add column if not exists bible jsonb not null default '[]'::jsonb;
+alter table public.gm_messages add column if not exists content jsonb not null default '{}'::jsonb;
 alter table public.gm_messages alter column file_path drop not null;
 create index if not exists gm_messages_date_idx on public.gm_messages (meet_date desc);
 
@@ -75,7 +77,7 @@ create policy "gm delete" on storage.objects for delete to anon, authenticated
 create or replace function public.gm_list()
 returns jsonb language sql stable security definer set search_path = public as $$
   select coalesce(jsonb_agg(jsonb_build_object(
-    'id', id, 'meet_date', meet_date, 'title', title, 'note', note, 'bible', bible,
+    'id', id, 'meet_date', meet_date, 'title', title, 'note', note, 'bible', bible, 'content', content,
     'file_path', file_path, 'file_name', file_name, 'file_size', file_size
   ) order by meet_date desc, created_at desc), '[]'::jsonb)
   from gm_messages;
@@ -142,12 +144,24 @@ begin
   return p_bible;
 end $$;
 
+create or replace function public.gm_check_content(p_content jsonb)
+returns jsonb language plpgsql immutable set search_path = public as $$
+begin
+  if p_content is null then return '{}'::jsonb; end if;
+  if jsonb_typeof(p_content) <> 'object' or length(p_content::text) > 200000 then
+    raise exception '信息內容格式不正確或太長';
+  end if;
+  return p_content;
+end $$;
+
 drop function if exists public.gm_admin_add(text, date, text, text, text, text, bigint);
 drop function if exists public.gm_admin_update(text, uuid, date, text, text);
+drop function if exists public.gm_admin_add(text, date, text, text, jsonb, text, text, bigint);
+drop function if exists public.gm_admin_update(text, uuid, date, text, text, jsonb, text, text, bigint);
 
 -- 新增一週；p_path 可為 null（只有讀經進度、沒有 PDF）
 create or replace function public.gm_admin_add(
-  p_pass text, p_date date, p_title text, p_note text, p_bible jsonb,
+  p_pass text, p_date date, p_title text, p_note text, p_bible jsonb, p_content jsonb,
   p_path text, p_file_name text, p_file_size bigint)
 returns jsonb language plpgsql volatile security definer set search_path = public as $$
 begin
@@ -155,8 +169,9 @@ begin
   if p_date is null then raise exception '請選擇聚會日期'; end if;
   if btrim(coalesce(p_title, '')) = '' then raise exception '請填寫標題'; end if;
   if p_path is not null then perform gm_claim_upload(p_path); end if;
-  insert into gm_messages (meet_date, title, note, bible, file_path, file_name, file_size)
+  insert into gm_messages (meet_date, title, note, bible, content, file_path, file_name, file_size)
   values (p_date, left(btrim(p_title), 200), left(coalesce(p_note, ''), 2000), gm_check_bible(p_bible),
+          gm_check_content(p_content),
           p_path, case when p_path is null then '' else left(coalesce(p_file_name, ''), 200) end,
           case when p_path is null then 0 else coalesce(p_file_size, 0) end);
   return gm_list();
@@ -164,7 +179,7 @@ end $$;
 
 -- 修改一週；p_path 為 null = 保留原本的 PDF；有給 = 換成新的 PDF（回傳舊檔路徑讓前端刪除）
 create or replace function public.gm_admin_update(
-  p_pass text, p_id uuid, p_date date, p_title text, p_note text, p_bible jsonb,
+  p_pass text, p_id uuid, p_date date, p_title text, p_note text, p_bible jsonb, p_content jsonb,
   p_path text, p_file_name text, p_file_size bigint)
 returns jsonb language plpgsql volatile security definer set search_path = public as $$
 declare v_old text;
@@ -178,6 +193,7 @@ begin
   update gm_messages set
     meet_date = p_date, title = left(btrim(p_title), 200),
     note = left(coalesce(p_note, ''), 2000), bible = gm_check_bible(p_bible),
+    content = gm_check_content(p_content),
     file_path = coalesce(p_path, file_path),
     file_name = case when p_path is null then file_name else left(coalesce(p_file_name, ''), 200) end,
     file_size = case when p_path is null then file_size else coalesce(p_file_size, 0) end
@@ -209,6 +225,6 @@ grant execute on function public.gm_ticket_ok(text, text) to anon, authenticated
 grant execute on function public.gm_list() to anon, authenticated;
 grant execute on function public.gm_admin_login(text) to anon, authenticated;
 grant execute on function public.gm_admin_ticket(text) to anon, authenticated;
-grant execute on function public.gm_admin_add(text, date, text, text, jsonb, text, text, bigint) to anon, authenticated;
-grant execute on function public.gm_admin_update(text, uuid, date, text, text, jsonb, text, text, bigint) to anon, authenticated;
+grant execute on function public.gm_admin_add(text, date, text, text, jsonb, jsonb, text, text, bigint) to anon, authenticated;
+grant execute on function public.gm_admin_update(text, uuid, date, text, text, jsonb, jsonb, text, text, bigint) to anon, authenticated;
 grant execute on function public.gm_admin_delete(text, uuid) to anon, authenticated;
