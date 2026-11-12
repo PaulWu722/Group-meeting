@@ -4,6 +4,8 @@
   --u: min(calc(100vw / 1440), calc(100svh / 760));
 
   --white: #ffffff;
+  --paper: #fbf8f2;      /* 內容頁的米色紙底（同每週信息 PDF） */
+  --paper-sky: #e6edf5;  /* 內容頁上方的淡藍天色 */
   --ink: #151515;
   --ink-button: #161616;
   --grey: #717171;
@@ -93,7 +95,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .nav[data-theme="dark"] { color: var(--ink); }
 .nav::before {
   content: ""; position: absolute; inset: 0; z-index: -1;
-  background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(14px);
+  background: rgba(251, 248, 242, 0.9); backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--line);
   opacity: 0; transition: opacity 0.4s var(--ease);
 }
@@ -286,11 +288,25 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ===== 白色內容 ===== */
 .content {
-  position: relative; z-index: 5; background: var(--white); min-height: 100svh;
+  position: relative; z-index: 5; background: var(--paper); min-height: 100svh;
   padding-top: calc(var(--nav-h) + clamp(28px, 6vw, 72px));
   font-size: 1.0625rem;
 }
 .home .content { margin-top: -100svh; opacity: 0; visibility: hidden; }
+/* 內容頁背景：米色紙底，上方帶一點淡藍；中央是「ΕΝ ΧΡΙΣΤΩ（在基督裏）」圓徽的淡色浮水印，捲動時停在畫面中央 */
+.content::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: min(520px, 80svh); pointer-events: none;
+  background: linear-gradient(to bottom, var(--paper-sky) 0%, var(--paper) 100%);
+}
+.content-bg { position: absolute; inset: 0; pointer-events: none; overflow: clip; }
+.content-emblem {
+  position: sticky; top: calc(50svh - var(--emblem) / 2 + var(--nav-h) / 2);
+  --emblem: min(86vw, 70svh, 620px);
+  width: var(--emblem); height: var(--emblem); margin: 0 auto;
+  background-color: var(--navy); opacity: 0.07;
+  -webkit-mask: url("img/in-christ.png") center / contain no-repeat;
+  mask: url("img/in-christ.png") center / contain no-repeat;
+}
 .content-wordmark { position: absolute; left: 0; right: 0; top: calc(var(--nav-h) + clamp(56px, 11vw, 120px)); pointer-events: none; overflow: hidden; }
 .content-wordmark span { opacity: 0.1; }
 .current, .archive { position: relative; width: min(820px, 100% - 40px); margin: 0 auto; }
@@ -311,7 +327,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 /* 分頁 */
 .tabs {
   display: grid; grid-template-columns: 1fr 1fr; height: var(--tabs-h);
-  position: sticky; top: var(--nav-h); z-index: 10; background: var(--white); border-bottom: 1px solid var(--line);
+  position: sticky; top: var(--nav-h); z-index: 10; background: rgba(251, 248, 242, 0.95); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
 }
 .tab {
   background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer;
@@ -353,7 +369,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .size-btn.active { background: var(--ink); color: #fff; }
 .chap-nav {
   display: flex; gap: 0.4rem; overflow-x: auto; padding: 0.55rem 0; margin-bottom: 0.4rem;
-  position: sticky; top: calc(var(--nav-h) + var(--tabs-h)); z-index: 5; background: var(--white);
+  position: sticky; top: calc(var(--nav-h) + var(--tabs-h)); z-index: 5; background: var(--paper);
 }
 .chap-jump { flex-shrink: 0; border: 1px solid transparent; background: var(--brand-soft); color: var(--navy); border-radius: var(--pill); padding: 0.2rem 0.9rem; cursor: pointer; font-size: 0.92rem; }
 .chap-jump.read { background: #fff; border-color: var(--line); color: var(--grey); }
