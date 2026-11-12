@@ -9,6 +9,7 @@
   let items = [];
   let current = null;
   let tab = 'pdf';
+  window.GM_APP = { tab: () => tab };
 
   // ---------- 選出「本次聚會」：今天以後最近的一次；都過了就取最新的一次 ----------
   function pickDefault(list) {
@@ -17,17 +18,67 @@
     return upcoming.length ? upcoming[upcoming.length - 1] : list[0];
   }
 
+  const FX = window.GM_FX;
+
+  // 載入失敗或還沒有資料：在第一屏顯示說明，不播開場
+  function showMessage(title, html) {
+    $('#hero-msg-title').textContent = title;
+    $('#hero-msg-text').innerHTML = html;
+    $('#hero-msg').hidden = false;
+    FX.start(false);
+  }
+
   async function load() {
-    try {
-      items = await API.list();
-    } catch (e) {
-      $('#loading').textContent = e.message;
+    // 進度＝完成了幾件事（資料＋三種字重的字型）
+    const fonts = document.fonts && document.fonts.load
+      ? ['300', '400', '500'].map((w) => document.fonts.load(`${w} 1em "Geist"`).catch(() => {})) : [];
+    const timeout = new Promise((r) => setTimeout(r, 4000)); // 字型太慢就不等了
+    let listError = null;
+    const list = API.list().then((r) => { items = r || []; }, (e) => { listError = e; });
+    const tasks = [list, ...fonts.map((f) => Promise.race([f, timeout]))];
+    let done = 0;
+    tasks.forEach((t) => t.then(() => { done++; FX.progress(done / tasks.length); }));
+    await Promise.all(tasks);
+
+    if (listError) {
+      showMessage('載入失敗', `${esc(listError.message || '連線發生問題')}<br><button type="button" class="link-btn" onclick="location.reload()">重新整理</button>`);
       return;
     }
-    $('#loading').hidden = true;
-    if (!items.length) { $('#empty').hidden = false; return; }
-    const fromHash = items.find((x) => x.id === decodeURIComponent(location.hash.slice(1)));
+    if (!items.length) {
+      showMessage('還沒有任何信息', '到<a href="admin.html">管理頁面</a>編寫第一週的信息與讀經進度。');
+      return;
+    }
+    let hash = '';
+    try { hash = decodeURIComponent(location.hash.slice(1)); } catch { hash = ''; }
+    const fromHash = items.find((x) => x.id === hash);
     select(fromHash || pickDefault(items), false);
+    FX.start(true);
+  }
+
+  // 卡片上的讀經範圍：「可 6」「可 4–5 · 詩 23」
+  function cardReading(item) {
+    const segs = (item.bible || []).map(B.normalize).filter(Boolean);
+    if (!segs.length) return '小排';
+    const txt = segs.slice(0, 2).map((s) => (s.book.chapters === 1 ? s.book.short
+      : s.c1 === s.c2 ? `${s.book.short} ${s.c1}` : `${s.book.short} ${s.c1}–${s.c2}`)).join(' · ');
+    return segs.length > 2 ? txt + ' …' : txt;
+  }
+
+  // 第一屏（夜景上的文字與卡片）
+  function renderHero(item, label) {
+    const ct = item.content || {};
+    $('#hero-badge-text').textContent = `${label}・${fmtDate(item.meet_date)}`;
+    $('#hero-series').textContent = ct.series || '';
+    $('#hero-series').hidden = !ct.series;
+    const title = $('#hero-title');
+    title.dataset.len = item.title.length <= 6 ? 's' : item.title.length <= 10 ? 'm' : item.title.length <= 16 ? 'l' : 'xl';
+    FX.splitWords(title, item.title);
+    const pray = ct.pray || {};
+    $('#hero-lead').textContent = ct.subtitle || (pray.text ? `${pray.ref ? pray.ref + '　' : ''}${pray.text}` : '')
+      || item.note || bibleText(item.bible);
+    $('#card-read').textContent = cardReading(item);
+    $('#card-date').textContent = item.meet_date.replace(/-/g, ' · ');
+    $('#hero-bible').hidden = !(Array.isArray(item.bible) && item.bible.length);
   }
 
   function select(item, scroll = true) {
@@ -38,10 +89,12 @@
 
     $('#current').hidden = false;
     const upcoming = item.meet_date >= today();
-    $('#cur-badge').textContent = isDefault ? (upcoming ? '本次聚會' : '最近一次聚會') : '往期信息';
+    const label = isDefault ? (upcoming ? '本次聚會' : '最近一次聚會') : '往期信息';
+    $('#cur-badge').textContent = label;
+    renderHero(item, label);
     $('#cur-badge').className = 'badge' + (isDefault ? '' : ' past');
     $('#cur-date').textContent = fmtDate(item.meet_date);
-    $('#cur-title').textContent = item.title;
+    FX.splitWords($('#cur-title'), item.title);
     const ct = item.content || {};
     $('#cur-series').textContent = ct.series || '';
     $('#cur-series').hidden = !ct.series;
@@ -60,7 +113,8 @@
     renderBible();
     renderMessage(item, hasMsg);
     renderArchive();
-    if (scroll) $('#current').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    FX.buildReady();
+    if (scroll) FX.toContent();
   }
 
   function setTab(t) {
@@ -70,6 +124,14 @@
     $('#tab-pdf').hidden = t !== 'pdf';
     $('#tab-bible').hidden = t !== 'bible';
     if (t === 'pdf') relayout();
+    FX.updateActive();
+  }
+
+  // 換分頁時，如果已經捲過分頁列，就回到分頁內容的開頭
+  function tabsToTop() {
+    const navH = $('#nav').offsetHeight;
+    const top = $('.cur-body').getBoundingClientRect().top;
+    if (top < navH - 1) window.scrollTo({ top: window.scrollY + top - navH + 1 });
   }
 
   // ---------- 聖經進度（列出恢復本經文） ----------
@@ -185,7 +247,8 @@
     const jump = e.target.closest('.chap-jump');
     if (jump) {
       const el = $(`#ch-${jump.dataset.b}-${jump.dataset.c}`);
-      const y = el.getBoundingClientRect().top + window.scrollY - 185;
+      const offset = $('#nav').offsetHeight + $('.tabs').offsetHeight + $('.chap-nav').offsetHeight + 8;
+      const y = el.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top: y, behavior: 'smooth' });
       return;
     }
@@ -351,7 +414,22 @@
   });
   $('#archive-search').addEventListener('input', renderArchive);
   $('#back-current').addEventListener('click', () => select(pickDefault(items)));
-  $$('.tab').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  $$('.tab').forEach((b) => b.addEventListener('click', () => { setTab(b.dataset.tab); tabsToTop(); }));
+
+  // 第一屏的兩顆按鈕、導覽列的連結：切到對的分頁再捲過去
+  const openTab = (t) => {
+    if (!current) return;
+    const hasBible = Array.isArray(current.bible) && current.bible.length > 0;
+    setTab(t === 'bible' && !hasBible ? 'pdf' : t);
+    FX.toContent();
+  };
+  $('#hero-read').addEventListener('click', () => openTab('pdf'));
+  $('#hero-bible').addEventListener('click', () => openTab('bible'));
+  $$('[data-nav]').forEach((a) => a.addEventListener('click', () => {
+    if (a.dataset.nav === 'archive') FX.toArchive(); else openTab(a.dataset.nav);
+  }));
+  // href="#" 的連結不要把頁面跳回最上面
+  document.addEventListener('click', (e) => { if (e.target.closest('a[href="#"]')) e.preventDefault(); });
 
   $('#share-btn').addEventListener('click', async () => {
     const url = location.href;

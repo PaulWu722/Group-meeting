@@ -1,101 +1,164 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-Hant" data-locked>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Group Meet｜小排聚會</title>
-  <meta name="description" content="小排聚會每週信息 PDF 與讀經進度（聖經恢復本）。">
-  <meta name="theme-color" content="#2f4a3f">
+  <meta name="description" content="小排聚會每週信息與讀經進度（聖經恢復本）。">
+  <meta name="theme-color" content="#0b1830">
+  <meta name="gm-design" content="portal-v1">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  <div class="demo-banner" id="demo-banner" hidden>
-    示範模式：資料只存在這台裝置的瀏覽器。正式使用請依 README 連接 Supabase。
-  </div>
+<body class="home">
+  <div class="demo-banner" id="demo-banner" hidden>示範模式：資料只存在這台裝置</div>
 
-  <header class="site-header">
-    <div class="container nav">
-      <a href="./" class="logo"><span class="logo-mark">📖</span><span>Group Meet</span></a>
-      <div class="nav-right">
-        <button type="button" class="icon-btn" id="share-btn" title="分享連結">分享</button>
-        <a href="admin.html" class="icon-btn subtle" title="上傳信息（管理）">管理</a>
-      </div>
+  <!-- 固定導覽列：在夜景上是白字，進到白色內容後變深色 -->
+  <header class="nav" id="nav" data-theme="light" data-intro="nav">
+    <a href="./" class="nav-logo" id="nav-logo" aria-label="Group Meet 回到最上面">GROUP MEET</a>
+    <nav class="nav-links" aria-label="主要區塊">
+      <a href="#" data-nav="pdf">信息</a>
+      <a href="#" data-nav="bible">聖經進度</a>
+      <a href="#" data-nav="archive">往期</a>
+    </nav>
+    <div class="nav-right">
+      <button type="button" class="nav-glass" id="share-btn" title="分享連結">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4m0 0L8 8m4-4 4 4M5 13v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>分享</span>
+      </button>
+      <a href="admin.html" class="nav-cta" title="編寫每週信息（管理）">管理</a>
     </div>
   </header>
 
-  <main class="container main">
-    <p class="loading" id="loading">載入中…</p>
+  <!-- 第一屏：夜景＋玻璃卡（捲動時穿過卡片進到內容） -->
+  <div id="hero-wrap">
+    <section class="hero" id="hero" aria-label="本次聚會">
+      <div class="preloader" id="preloader" aria-hidden="true">
+        <div class="pre-wordmark">GROUP MEET</div>
+        <div class="pre-counter" id="pre-counter"><span id="pre-num">00</span>%</div>
+      </div>
 
-    <div class="empty card" id="empty" hidden>
-      <div class="empty-icon">🗂️</div>
-      <h2>還沒有任何信息</h2>
-      <p class="muted">到<a href="admin.html">管理頁面</a>上傳第一週的信息 PDF 與讀經進度。</p>
-    </div>
+      <div class="layer media" id="media">
+        <div class="scene" id="scene" aria-hidden="true">
+          <div class="stars"></div>
+          <div class="moon"></div>
+          <svg class="waves" viewBox="0 0 2880 400" preserveAspectRatio="none">
+            <path class="wave w1" d="M0 120 C 240 60 480 60 720 120 S 1200 180 1440 120 S 1920 60 2160 120 S 2640 180 2880 120 V400 H0Z"/>
+            <path class="wave w2" d="M0 190 C 240 140 480 140 720 190 S 1200 240 1440 190 S 1920 140 2160 190 S 2640 240 2880 190 V400 H0Z"/>
+            <path class="wave w3" d="M0 270 C 240 230 480 230 720 270 S 1200 310 1440 270 S 1920 230 2160 270 S 2640 310 2880 270 V400 H0Z"/>
+          </svg>
+          <div class="reflection"></div>
+        </div>
+        <div class="card-plane card-glass" id="card-glass" aria-hidden="true"></div>
+        <div class="card-plane card-light" id="card-light" aria-hidden="true">
+          <div class="card-ring"></div>
+          <div class="card-mark">GROUP MEET</div>
+          <div class="card-read" id="card-read"></div>
+          <div class="card-date" id="card-date"></div>
+        </div>
+      </div>
 
-    <section class="card current" id="current" hidden>
+      <div class="layer hero-copy" id="hero-copy">
+        <div class="hero-col">
+          <div class="hero-badge" data-intro="badge"><i></i><span id="hero-badge-text"></span></div>
+          <p class="hero-series" id="hero-series" data-intro="badge" hidden></p>
+          <h1 class="hero-title" id="hero-title"></h1>
+        </div>
+        <div class="hero-buttons" data-intro="buttons">
+          <button type="button" class="btn-light" id="hero-read">讀信息</button>
+          <button type="button" class="btn-outline" id="hero-bible">聖經進度</button>
+        </div>
+        <p class="hero-lead" id="hero-lead" data-intro="lead"></p>
+      </div>
+
+      <div class="layer over" id="over" aria-hidden="true">
+        <div class="card-plane card-portal" id="card-portal">
+          <div class="portal-fill" id="portal-fill"></div>
+          <div class="portal-rim" id="portal-rim"></div>
+        </div>
+      </div>
+
+      <div class="hero-msg" id="hero-msg" hidden>
+        <h2 id="hero-msg-title"></h2>
+        <p id="hero-msg-text"></p>
+      </div>
+    </section>
+  </div>
+
+  <!-- 第二屏起：白色內容 -->
+  <main class="content" id="content">
+    <div class="content-wordmark" data-ready="wordmark" aria-hidden="true"><span>GROUP MEET</span></div>
+
+    <section class="current" id="current" hidden>
       <div class="cur-head">
-        <div class="cur-meta">
+        <div class="cur-meta" data-ready="item">
           <span class="badge" id="cur-badge">本次聚會</span>
           <span class="cur-date" id="cur-date"></span>
           <button type="button" class="link-btn" id="back-current" hidden>← 回到本次聚會</button>
         </div>
-        <p class="cur-series" id="cur-series" hidden></p>
+        <p class="cur-series" id="cur-series" data-ready="item" hidden></p>
         <h1 id="cur-title"></h1>
-        <p class="cur-sub" id="cur-sub" hidden></p>
-        <p class="cur-note" id="cur-note" hidden></p>
+        <p class="cur-sub" id="cur-sub" data-ready="item" hidden></p>
+        <p class="cur-note" id="cur-note" data-ready="item" hidden></p>
       </div>
 
-      <div class="tabs" role="tablist">
-        <button type="button" class="tab active" data-tab="pdf" role="tab" aria-selected="true">
-          <span>📄 信息</span><small></small>
-        </button>
-        <button type="button" class="tab" data-tab="bible" id="tab-btn-bible" role="tab" aria-selected="false">
-          <span>📖 聖經進度</span><small></small>
-        </button>
-      </div>
-
-      <div class="tab-panel" id="tab-pdf" role="tabpanel">
-        <div id="msg-view" hidden></div>
-        <div class="pdf-tools" id="pdf-tools">
-          <div class="zoom">
-            <button type="button" id="zoom-out" aria-label="縮小">−</button>
-            <button type="button" id="zoom-label" title="恢復 100%">100%</button>
-            <button type="button" id="zoom-in" aria-label="放大">＋</button>
-          </div>
-          <span class="muted" id="page-count"></span>
-          <span class="spacer"></span>
-          <a class="tool-link" id="pdf-open" href="#" target="_blank" rel="noopener">開新視窗</a>
-          <a class="tool-link" id="pdf-download" href="#" download>下載</a>
+      <div class="cur-body" data-ready="body">
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" data-tab="pdf" role="tab" aria-selected="true">
+            <span>📄 信息</span><small></small>
+          </button>
+          <button type="button" class="tab" data-tab="bible" id="tab-btn-bible" role="tab" aria-selected="false">
+            <span>📖 聖經進度</span><small></small>
+          </button>
         </div>
-        <div class="pages" id="pages"></div>
-      </div>
 
-      <div class="tab-panel" id="tab-bible" role="tabpanel" hidden>
-        <div id="bible-body"></div>
+        <div class="tab-panel" id="tab-pdf" role="tabpanel">
+          <div id="msg-view" hidden></div>
+          <div class="pdf-tools" id="pdf-tools">
+            <div class="zoom">
+              <button type="button" id="zoom-out" aria-label="縮小">−</button>
+              <button type="button" id="zoom-label" title="恢復 100%">100%</button>
+              <button type="button" id="zoom-in" aria-label="放大">＋</button>
+            </div>
+            <span class="muted" id="page-count"></span>
+            <span class="spacer"></span>
+            <a class="tool-link" id="pdf-open" href="#" target="_blank" rel="noopener">開新視窗</a>
+            <a class="tool-link" id="pdf-download" href="#" download>下載</a>
+          </div>
+          <div class="pages" id="pages"></div>
+        </div>
+
+        <div class="tab-panel" id="tab-bible" role="tabpanel" hidden>
+          <div id="bible-body"></div>
+        </div>
       </div>
     </section>
 
-    <section class="archive" id="archive" hidden>
+    <section class="archive" id="archive" data-ready="body" hidden>
       <div class="archive-head">
         <h2>往期信息</h2>
         <input type="search" id="archive-search" placeholder="搜尋標題、書卷、日期…">
       </div>
       <ul class="archive-list" id="archive-list"></ul>
     </section>
+
+    <footer class="footer muted">聖經恢復本經文 © Living Stream Ministry，台灣福音書房出版。經文資料取自<a href="https://isaiahovercomer.github.io/interlinear-bible/" target="_blank" rel="noopener">原文對照聖經</a>。</footer>
   </main>
 
-  <footer class="footer muted">聖經恢復本經文 © Living Stream Ministry，台灣福音書房出版。經文資料取自<a href="https://isaiahovercomer.github.io/interlinear-bible/" target="_blank" rel="noopener">原文對照聖經</a>。</footer>
+  <div class="cursor" id="cursor" aria-hidden="true"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="bible.js"></script>
   <script src="api.js"></script>
   <script src="common.js"></script>
   <script src="message.js"></script>
+  <script src="motion.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

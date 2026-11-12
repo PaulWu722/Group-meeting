@@ -5,33 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Group Meet｜管理</title>
   <meta name="robots" content="noindex">
-  <meta name="theme-color" content="#2f4a3f">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📖</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500&family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@500;600;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="admin">
   <div class="demo-banner" id="demo-banner" hidden>
-    示範模式：資料只存在這台裝置的瀏覽器，密碼是 1234。
+    示範模式：資料只存在這台裝置，密碼 1234
   </div>
 
-  <header class="site-header">
-    <div class="container nav">
-      <a href="./" class="logo"><span class="logo-mark">📖</span><span>Group Meet</span><span class="logo-tag">管理</span></a>
-      <div class="nav-right">
-        <a href="./" class="icon-btn subtle">回首頁</a>
-        <button type="button" class="icon-btn subtle" id="logout" hidden>登出</button>
-      </div>
+  <header class="nav" data-theme="dark">
+    <a href="./" class="nav-logo" aria-label="Group Meet 首頁">GROUP MEET<span class="nav-tag">管理</span></a>
+    <div class="nav-right">
+      <button type="button" class="nav-glass" id="logout" hidden><span style="padding-left:4px">登出</span></button>
+      <a href="./" class="nav-cta">回首頁</a>
     </div>
   </header>
 
-  <main class="container main narrow">
+  <main class="main">
     <!-- 登入 -->
     <section class="card login" id="login">
       <h1>管理登入</h1>
-      <p class="muted">輸入管理密碼後，就可以上傳每週的信息 PDF 與讀經進度。</p>
+      <p class="muted">輸入管理密碼後，就可以編寫每週的信息與讀經進度。</p>
       <form id="login-form" class="form">
         <label class="field">
           <span>管理密碼</span>
