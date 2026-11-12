@@ -66,6 +66,10 @@ update public.gm_settings
 1. GitHub repo → **Settings → Pages** → Source 選 `Deploy from a branch`，選 `main` 分支、資料夾 `/ (root)`。
 2. 網址會是 `https://paulwu722.github.io/Group-meeting/`（管理頁：`…/Group-meeting/admin.html`）。
 
+## 更新網站後
+
+改了 `.css` 或 `.js` 之後，請把 `index.html` 和 `admin.html` 裡每個檔名後面的 `?v=...` 換成新的值（例如日期），手機才會抓到新檔案，不會顯示舊的。
+
 ## 檔案
 
 | 檔案 | 說明 |
